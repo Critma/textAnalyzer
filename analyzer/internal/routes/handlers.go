@@ -1,14 +1,12 @@
 package routes
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Critma/textAnalyzer/analyzer/internal/cache"
+	"github.com/Critma/textAnalyzer/analyzer/internal/metrics"
 	"github.com/Critma/textAnalyzer/analyzer/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -16,6 +14,10 @@ import (
 
 // healthCheck ping redis, return status ok or unavailable
 func (r *Routes) healthCheck(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "GET /health")
+	}()
 	// Check Redis
 	if err := r.App.Redis.Ping(context.Background()).Err(); err != nil {
 		log.Error().Str("handler", "health check").Err(err).Msg("redis ping error")
@@ -26,6 +28,10 @@ func (r *Routes) healthCheck(c *gin.Context) {
 }
 
 func (r *Routes) handleAnalyze(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "POST /analyze")
+	}()
 	var input models.JsonInput
 	// parse request body
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
@@ -60,21 +66,4 @@ func (r *Routes) handleAnalyze(c *gin.Context) {
 	case <-time.After(5 * time.Second):
 		c.JSON(http.StatusTooManyRequests, gin.H{"message": "Unable to send job within timeout"})
 	}
-}
-
-// SendResult send JsonRequestOutput to receiver service
-func SendResult(output models.JsonRequestOutput, httpClient *http.Client, receiverAddr string) error {
-	data, _ := json.Marshal(output)
-	addr := fmt.Sprintf("http://%s/api/v1/result", receiverAddr)
-	resp, err := httpClient.Post(addr, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("receiver service returned status %d", resp.StatusCode)
-	}
-
-	return nil
 }

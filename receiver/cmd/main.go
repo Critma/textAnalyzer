@@ -15,6 +15,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+//	@title			Swagger receiverAPI
+//	@version		1.0
+//	@description	This is a service for receiving text.
+
+//	@license.name	MIT
+//	@license.url	https://opensource.org/license/mit
+
+// @host		localhost:8080
+// @BasePath	/api/v1
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -43,7 +52,7 @@ func main() {
 
 	r := gin.Default()
 	routes := routes.New(app)
-	routes.Mount(r.Group("/api"))
+	routes.Mount(r)
 
 	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

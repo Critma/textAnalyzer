@@ -1,2 +1,3 @@
-run-receiver:
-	go run receiver/cmd/*.go
+
+run:
+	docker-compose up -d
