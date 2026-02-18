@@ -1,0 +1,58 @@
+services:
+  receiver:
+    build: ./Receiver
+    container_name: receiver
+    ports:
+      - "8080:8080"
+    environment:
+      ANALYZER_ADDR: ${ANALYZER_ADDR}
+      RECEIVER_ADDR: ${RECEIVER_ADDR}
+      REDIS_ADDR: ${REDIS_ADDR}
+    depends_on:
+      - analyzer
+      - redis
+    networks:
+      - app-network
+
+  analyzer:
+    build: ./Analyzer
+    container_name: analyzer
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_ADDR: ${REDIS_ADDR}
+      RECEIVER_ADDR: ${RECEIVER_ADDR}
+      ANALYZER_ADDR: ${ANALYZER_ADDR}
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes:
+      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "19090:9090"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
