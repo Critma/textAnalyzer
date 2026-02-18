@@ -98,7 +98,7 @@ func TestEndToEndFlow(t *testing.T) {
 			}
 
 			// wait until processed
-			time.Sleep(3 * time.Second)
+			time.Sleep(2 * time.Second)
 
 			// check analyze result
 			getEndpoint := fmt.Sprintf(receiverHost+"/api/v1/status/%s", response.ID)
