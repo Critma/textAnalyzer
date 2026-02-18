@@ -12,7 +12,7 @@
 1. Для запуска проекта используйте команду
 
     ```bash
-    docker-compose up --build
+    docker-compose up -d
     ```
 1. Запуск интеграционных тестов
     ```bash
