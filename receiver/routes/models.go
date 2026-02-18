@@ -34,3 +34,16 @@ type JsonToAnalyzer struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`
 }
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type IdResponse struct {
+	ID string `json:"id"`
+}
+
+type StatusResponse struct {
+	Status    string `json:"status"`
+	Component string `json:"component,omitempty"`
+}

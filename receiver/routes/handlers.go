@@ -1,21 +1,33 @@
 package routes
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"receiver/cache"
-	"receiver/internal/config"
+	"receiver/internal/metrics"
 	"receiver/internal/storage"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
+// @Summary Create new text analysis request
+// @Description Creates a new text analysis request by accepting user-submitted text for processing.
+// @Tags Requests
+// @Accept json
+// @Produce json
+// @Param payload body JsonTextInput true "Input text to create an analysis request"
+// @Success 200 {object} IdResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /text [post]
 func (r *Routes) handleCreate(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "handleCreate")
+	}()
 	var req JsonTextInput
 	//TODO limit read body
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -49,35 +61,23 @@ func (r *Routes) handleCreate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": request.ID})
 }
 
-func sendToAnalyzer(app config.Application, id uuid.UUID, text string) error {
-	var toSend *JsonToAnalyzer = &JsonToAnalyzer{ID: id.String(), Text: text}
-	data, err := json.Marshal(toSend)
-	if err != nil {
-		return err
-	}
-
-	analyzerUrl := fmt.Sprintf("http://%s/api/v1/analyze", app.Config.AnalyzerAddr)
-	req, err := http.NewRequest("POST", analyzerUrl, bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	// send to analyzer service
-	resp, err := app.HttpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("analyzer service returned status %d", resp.StatusCode)
-	}
-
-	return nil
-}
-
+// @Summary Get status of a specific text analysis request
+// @Description Retrieves the current status of a text analysis request based on its unique identifier.
+// @Tags Requests
+// @Accept json
+// @Produce json
+// @Param id path string true "Unique Request ID"
+// @Success 200 {object} JsonRequest
+// @Success 200 {object} JsonStatusOnlyOutput
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /status/{id} [get]
 func (r *Routes) getStatus(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "getStatus")
+	}()
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		log.Error().Str("handler", "get status").Err(err).Msg("Invalid ID")
@@ -124,8 +124,19 @@ func (r *Routes) getStatus(c *gin.Context) {
 	}
 }
 
-// healthCheck ping redis, return status ok or unavailable
+// @Summary Ping Redis connection for health check
+// @Description Performs a simple ping operation against Redis to verify connectivity.
+// @Tags System
+// @Accept json
+// @Produce json
+// @Success 200 {object} StatusResponse
+// @Failure 503 {object} StatusResponse
+// @Router /health [get]
 func (r *Routes) healthCheck(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "health")
+	}()
 	// Check Redis
 	if err := r.App.Redis.Ping(context.Background()).Err(); err != nil {
 		log.Error().Str("handler", "health check").Err(err).Msg("redis ping error")
@@ -135,7 +146,22 @@ func (r *Routes) healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+// @Summary Update analyzed text request
+// @Description Updates the status and analysis results of a given text request using information received from the analyzer service.
+// @Tags Microservices
+// @Accept json
+// @Produce json
+// @Param payload body JsonRequest true "Updated request details including analysis results"
+// @Success 200 {object} StatusResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /result [put]
 func (r *Routes) updateAnalyze(c *gin.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ObserveRequest(time.Since(start), c.Writer.Status(), "updateAnalyze")
+	}()
 	//TODO receive only service ip
 	var answer JsonRequest
 	if err := c.ShouldBindJSON(&answer); err != nil {

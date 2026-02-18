@@ -44,7 +44,7 @@ func main() {
 	r := gin.Default()
 	jobs := make(chan *models.JsonInput, 100)
 	routes := routes.New(app, jobs)
-	routes.Mount(r.Group("/api"))
+	routes.Mount(r)
 
 	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
