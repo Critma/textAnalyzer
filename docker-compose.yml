@@ -1,6 +1,6 @@
 services:
   receiver:
-    build: ./Receiver
+    build: ./receiver
     container_name: receiver
     ports:
       - "8080:8080"
@@ -15,7 +15,7 @@ services:
       - app-network
 
   analyzer:
-    build: ./Analyzer
+    build: ./analyzer
     container_name: analyzer
     ports:
       - "8081:8081"

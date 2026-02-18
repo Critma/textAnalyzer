@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "51e96b7e-ceaa-461a-a36e-15919fc8df4f",
+		"name": "TextAnalyzer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "42944399"
+	},
+	"item": [
+		{
+			"name": "receiver",
+			"item": [
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RECEIVER_PATH}}/health",
+							"host": [
+								"{{RECEIVER_PATH}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sendText",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"text\": \"Hello, how are you?\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{RECEIVER_PATH}}/text",
+							"host": [
+								"{{RECEIVER_PATH}}"
+							],
+							"path": [
+								"text"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getStatus",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{RECEIVER_PATH}}/status/534342f8-91e5-4119-998d-c0192b4a5968",
+							"host": [
+								"{{RECEIVER_PATH}}"
+							],
+							"path": [
+								"status",
+								"534342f8-91e5-4119-998d-c0192b4a5968"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "analyzer",
+			"item": [
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ANALYZER_PATH}}/health",
+							"host": [
+								"{{ANALYZER_PATH}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "RECEIVER_PATH",
+			"value": ""
+		},
+		{
+			"key": "ANALYZER_PATH",
+			"value": ""
+		}
+	]
+}
